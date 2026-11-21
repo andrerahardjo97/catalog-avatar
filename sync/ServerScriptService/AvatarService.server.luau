@@ -8,6 +8,7 @@ local Remotes = ReplicatedStorage.Remotes
 
 local MAX_CACHE = 300
 local MAX_BULK = 20
+local USER_AGE = 60
 
 local looks = {}
 local busy = {}
@@ -19,10 +20,10 @@ local function humanoidOf(player: Player): Humanoid?
 	return if character then character:FindFirstChildOfClass("Humanoid") else nil
 end
 
-local function cached(key: string, fetch: () -> HumanoidDescription): (boolean, any)
+local function cached(key: string, maxAge: number, fetch: () -> HumanoidDescription): (boolean, any)
 	local hit = cache[key]
-	if hit then
-		return true, Look.copy(hit)
+	if hit and os.clock() - hit.at <= maxAge then
+		return true, Look.copy(hit.look)
 	end
 	local ok, description = pcall(fetch)
 	if not ok then
@@ -31,12 +32,14 @@ local function cached(key: string, fetch: () -> HumanoidDescription): (boolean, 
 	end
 	local look = Look.fromDescription(description)
 	description:Destroy()
-	if cacheSize >= MAX_CACHE then
-		table.clear(cache)
-		cacheSize = 0
+	if not cache[key] then
+		if cacheSize >= MAX_CACHE then
+			table.clear(cache)
+			cacheSize = 0
+		end
+		cacheSize += 1
 	end
-	cache[key] = look
-	cacheSize += 1
+	cache[key] = { look = look, at = os.clock() }
 	return true, Look.copy(look)
 end
 
@@ -91,11 +94,11 @@ function handlers.apply(player: Player, payload: any): (boolean, any)
 	return applyLook(player, look)
 end
 
-function handlers.user(_player: Player, userId: any): (boolean, any)
+function handlers.user(player: Player, userId: any): (boolean, any)
 	if not Look.isId(userId) then
 		return false, "That user is not valid."
 	end
-	return cached("user" .. userId, function(): HumanoidDescription
+	return cached("user" .. userId, if userId == player.UserId then 0 else USER_AGE, function(): HumanoidDescription
 		return Players:GetHumanoidDescriptionFromUserIdAsync(userId)
 	end)
 end
@@ -117,7 +120,7 @@ function handlers.outfit(_player: Player, outfitId: any): (boolean, any)
 	if not Look.isId(outfitId) then
 		return false, "That outfit is not valid."
 	end
-	return cached("outfit" .. outfitId, function(): HumanoidDescription
+	return cached("outfit" .. outfitId, USER_AGE, function(): HumanoidDescription
 		return Players:GetHumanoidDescriptionFromOutfitIdAsync(outfitId)
 	end)
 end
@@ -126,7 +129,7 @@ function handlers.bundle(_player: Player, bundleId: any): (boolean, any)
 	if not Look.isId(bundleId) then
 		return false, "That bundle is not valid."
 	end
-	return cached("bundle" .. bundleId, function(): HumanoidDescription
+	return cached("bundle" .. bundleId, math.huge, function(): HumanoidDescription
 		local details = AvatarEditorService:GetItemDetailsAsync(bundleId, Enum.AvatarItemType.Bundle)
 		for _, item in details.BundledItems or {} do
 			if item.Type == "UserOutfit" then

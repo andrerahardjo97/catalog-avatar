@@ -70,6 +70,7 @@ end
 function Session.commit(look: Look.Look)
 	if not Session.initialized then
 		Ui.showToast("Loading your avatar, try again in a moment.")
+		task.spawn(Session.ensureLook)
 		return
 	end
 	table.insert(history, Session.current)
