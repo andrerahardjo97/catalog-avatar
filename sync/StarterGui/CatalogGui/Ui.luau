@@ -16,7 +16,6 @@ local detailScroll = details.Scroll
 local Ui = {
 	Templates = Avatar:WaitForChild("Templates"),
 	gui = gui,
-	hud = gui.Hud,
 	toast = gui.Toast,
 	editor = editor,
 	orbitPad = editor.OrbitPad,

@@ -10,6 +10,7 @@ local Avatar = ReplicatedStorage:WaitForChild("Avatar")
 local Look = require(Avatar:WaitForChild("Look"))
 local Categories = require(Avatar:WaitForChild("Categories"))
 local DressingCamera = require(Avatar:WaitForChild("DressingCamera"))
+local Icon = require(ReplicatedStorage:WaitForChild("Icon"))
 local Inputs = ReplicatedStorage:WaitForChild("Inputs")
 local ToggleContext = Inputs:WaitForChild("EditorToggle")
 local EditorContext = Inputs:WaitForChild("Editor")
@@ -39,6 +40,7 @@ local listPage = Ui.listPage
 
 local savedContexts = {}
 local touchControls = true
+local shopIcon = Icon.new():setName("AvatarShop"):setLabel("Avatar Shop"):setCaptionHint(Enum.KeyCode.C)
 
 Session.changed = function(): ()
 	Cards.refresh()
@@ -188,7 +190,11 @@ local function setOpen(value: boolean)
 	end
 	Ui.open = value
 	editor.Visible = value
-	Ui.hud.Visible = not value
+	if value then
+		shopIcon:select()
+	else
+		shopIcon:deselect()
+	end
 	EditorContext.Enabled = value
 	setPlayerInput(not value)
 	if value then
@@ -263,8 +269,8 @@ Wearing.bind()
 PlayersPanel.bind()
 Details.bind()
 
-Ui.hud.OpenButton.Activated:Connect(function()
-	setOpen(true)
+shopIcon.toggled:Connect(function(isSelected)
+	setOpen(isSelected)
 end)
 toolbar.CloseButton.Activated:Connect(function()
 	setOpen(false)
