@@ -233,6 +233,10 @@ local function updateHint(hint: Instance)
 	if hint:IsA("InputActionLabel") then
 		hint.Visible = UserInputService.PreferredInput ~= Enum.PreferredInput.Touch
 			and (hint.ResolvedText ~= "" or hint.ResolvedImageContent.SourceType ~= Enum.ContentSourceType.None)
+		local keycap = hint:FindFirstChild("Keycap")
+		if keycap and keycap:IsA("GuiObject") then
+			keycap.Visible = hint.ResolvedText ~= ""
+		end
 	end
 end
 
