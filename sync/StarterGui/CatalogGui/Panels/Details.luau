@@ -14,6 +14,7 @@ local detailScroll = Ui.detailScroll
 local detailActions = Ui.detailActions
 local detailsItem = nil
 local detailsFavorite = false
+local favoriteItem = nil
 
 function Details.isOpen(): boolean
 	return details.Visible
@@ -107,7 +108,6 @@ function Details.open(item: Look.Item)
 				then {
 					id = entry.Id,
 					bundle = true,
-					bundleType = entry.BundleType,
 					name = entry.Name or "",
 					price = product.PriceInRobux,
 					priceStatus = if product.IsForSale == false then "Off sale" else nil,
@@ -129,7 +129,9 @@ end
 
 function Details.bind()
 	AvatarEditorService.PromptSetFavoriteCompleted:Connect(function(result)
-		if result == Enum.AvatarPromptResult.Success and detailsItem then
+		local item = favoriteItem
+		favoriteItem = nil
+		if result == Enum.AvatarPromptResult.Success and item and detailsItem == item then
 			detailsFavorite = not detailsFavorite
 			detailActions.FavoriteButton.Text = if detailsFavorite then "Unfavorite" else "Favorite"
 		end
@@ -150,6 +152,7 @@ function Details.bind()
 	end)
 	detailActions.FavoriteButton.Activated:Connect(function()
 		if detailsItem then
+			favoriteItem = detailsItem
 			AvatarEditorService:PromptSetFavorite(detailsItem.id, Ui.itemType(detailsItem), not detailsFavorite)
 		end
 	end)

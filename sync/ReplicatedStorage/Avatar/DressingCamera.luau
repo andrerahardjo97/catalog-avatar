@@ -68,7 +68,7 @@ local function update(dt: number)
 	camera.Focus = CFrame.new(point)
 end
 
-function DressingCamera.setCharacter(model: Model)
+local function setCharacter(model: Model)
 	character = model
 	point = nil
 	local root = model:FindFirstChild("HumanoidRootPart")
@@ -80,7 +80,7 @@ function DressingCamera.setCharacter(model: Model)
 end
 
 function DressingCamera.start(model: Model)
-	DressingCamera.setCharacter(model)
+	setCharacter(model)
 	targetPitch, pitch = -0.12, -0.12
 	targetZoom, zoom = 1, 1
 	local camera = Workspace.CurrentCamera
@@ -109,6 +109,8 @@ function DressingCamera.stop()
 			camera.CameraSubject = humanoid
 		end
 	end
+	character = nil
+	point = nil
 end
 
 function DressingCamera.setFocus(name: string)

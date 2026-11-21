@@ -43,8 +43,14 @@ local touchControls = true
 Session.changed = function(): ()
 	Cards.refresh()
 	Details.refresh()
-	if Ui.open and Ui.tabKind() == "wearing" and not Session.applying then
+	if not Ui.open then
+		return
+	end
+	local kind = Ui.tabKind()
+	if kind == "wearing" and not Session.applying then
 		task.spawn(Wearing.render)
+	elseif kind == "body" then
+		Body.sync()
 	end
 end
 Cards.openDetails = Details.open
@@ -75,6 +81,7 @@ local function selectTab(index: number)
 	listPage.Visible = not gridKind
 	Catalog.cancel()
 	Wearing.cancel()
+	Body.cancel()
 	Ui.setStatus("")
 	if not gridKind then
 		Ui.clearChildren(listPage)

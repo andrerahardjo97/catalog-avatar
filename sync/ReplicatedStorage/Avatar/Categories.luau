@@ -1,16 +1,6 @@
 local A = Enum.AvatarAssetType
 local B = Enum.BundleType
 
-export type Tab = {
-	name: string,
-	kind: string,
-	focus: string,
-	assetTypes: { Enum.AvatarAssetType }?,
-	bundleTypes: { Enum.BundleType }?,
-}
-
-export type Sort = { name: string, value: Enum.CatalogSortType }
-export type Price = { name: string, min: number, max: number? }
 export type Scale = { key: string, label: string, min: number, max: number }
 
 local Categories = {}

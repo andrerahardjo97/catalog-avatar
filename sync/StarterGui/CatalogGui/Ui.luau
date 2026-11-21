@@ -99,7 +99,6 @@ function Ui.toItem(entry: any): Look.Item
 		id = entry.Id,
 		bundle = entry.ItemType == "Bundle",
 		assetType = entry.AssetType,
-		bundleType = entry.BundleType,
 		name = entry.Name or "",
 		price = entry.Price or entry.LowestPrice,
 		priceStatus = entry.PriceStatus,

@@ -14,16 +14,19 @@ local Catalog = {}
 local grid = Ui.grid
 local searchBox = Ui.searchRow.SearchBox
 local sortButton = Ui.searchRow.SortButton
-local query = { token = 0 }
+local query = nil
 local sortIndex = 1
 local priceKey = "Any"
 local keyword = ""
 local searchToken = 0
+local asking = false
 
 local function checkScroll()
+	local q = query
 	if
-		query.pages
-		and not query.finished
+		q
+		and q.pages
+		and not q.finished
 		and grid.Visible
 		and grid.CanvasPosition.Y + grid.AbsoluteWindowSize.Y >= grid.AbsoluteCanvasSize.Y - 400
 	then
@@ -54,7 +57,7 @@ end
 
 function Catalog.loadMore()
 	local q = query
-	if q.loading or q.finished or not q.pages then
+	if not q or q.loading or q.finished or not q.pages then
 		return
 	end
 	q.loading = true
@@ -73,10 +76,13 @@ function Catalog.loadMore()
 end
 
 function Catalog.cancel()
-	query = { token = 0 }
+	query = nil
 end
 
 function Catalog.search()
+	if not Ui.open or Ui.tabKind() ~= "catalog" then
+		return
+	end
 	local tab = Categories.tabs[Ui.tabIndex]
 	local q = newQuery(function(entry: any, order: number)
 		Cards.make(Ui.toItem(entry), grid, order)
@@ -134,8 +140,12 @@ function Catalog.outfits()
 	local q = newQuery(makeOutfitCard, "You have no saved outfits yet. Use Save to make one.")
 	if not Session.inventoryAllowed then
 		Ui.setStatus("Allow inventory access to see your outfits.")
-		AvatarEditorService:PromptAllowInventoryReadAccess()
+		if not asking then
+			asking = true
+			AvatarEditorService:PromptAllowInventoryReadAccess()
+		end
 		local result = AvatarEditorService.PromptAllowInventoryReadAccessCompleted:Wait()
+		asking = false
 		if q ~= query then
 			return
 		end

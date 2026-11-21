@@ -63,7 +63,9 @@ local function applyLook(player: Player, look: Look.Look): (boolean, any)
 	end
 	local applied = Look.fromDescription(humanoid:GetAppliedDescription())
 	applied.bundles = look.bundles
-	looks[player] = applied
+	if player.Parent then
+		looks[player] = applied
+	end
 	return true, Look.copy(applied)
 end
 
@@ -189,14 +191,18 @@ local function onCharacter(player: Player, character: Model)
 	if not look then
 		return
 	end
-	if not player:HasAppearanceLoaded() then
-		player.CharacterAppearanceLoaded:Wait()
+	while not player:HasAppearanceLoaded() or busy[player] do
+		if player.Character ~= character or not player.Parent then
+			return
+		end
+		task.wait(0.1)
 	end
-	if player.Character == character and not busy[player] then
-		busy[player] = true
-		applyLook(player, look)
-		busy[player] = nil
+	if player.Character ~= character or not player.Parent then
+		return
 	end
+	busy[player] = true
+	applyLook(player, looks[player] or look)
+	busy[player] = nil
 end
 
 local function onPlayer(player: Player)

@@ -9,10 +9,13 @@ local player = Players.LocalPlayer
 local listPage = Ui.listPage
 local usernameRow = Ui.usernameRow
 
-function PlayersPanel.render()
+function PlayersPanel.render(leaving: Player?)
 	Ui.clearChildren(listPage)
 	Ui.setStatus("")
 	for i, other in Players:GetPlayers() do
+		if other == leaving then
+			continue
+		end
 		local row = Ui.Templates.PlayerRow:Clone()
 		row.LayoutOrder = if other == player then 0 else i
 		row.Thumb.ImageContent = Ui.thumbnail("AvatarHeadShot", other.UserId, 150)
@@ -45,9 +48,9 @@ function PlayersPanel.bind()
 			PlayersPanel.render()
 		end
 	end)
-	Players.PlayerRemoving:Connect(function()
+	Players.PlayerRemoving:Connect(function(leaving)
 		if Ui.open and Ui.tabKind() == "players" then
-			task.defer(PlayersPanel.render)
+			PlayersPanel.render(leaving)
 		end
 	end)
 end

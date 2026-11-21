@@ -16,7 +16,6 @@ export type Item = {
 	id: number,
 	bundle: boolean,
 	assetType: string?,
-	bundleType: string?,
 	name: string,
 	price: number?,
 	priceStatus: string?,
@@ -219,39 +218,32 @@ function Look.isWearing(look: Look, id: number): boolean
 	return false
 end
 
-function Look.remove(look: Look, id: number): boolean
-	local removed = false
+function Look.remove(look: Look, id: number)
 	for i = #look.accessories, 1, -1 do
 		if look.accessories[i].id == id then
 			table.remove(look.accessories, i)
-			removed = true
 		end
 	end
 	for i = #look.makeup, 1, -1 do
 		if look.makeup[i].id == id then
 			table.remove(look.makeup, i)
-			removed = true
 		end
 	end
 	for _, bodyPart in look.bodyParts do
 		if bodyPart.id == id then
 			bodyPart.id = 0
-			removed = true
 		end
 	end
 	for prop, value in look.clothing do
 		if value == id then
 			look.clothing[prop] = 0
-			removed = true
 		end
 	end
 	for prop, value in look.animations do
 		if value == id then
 			look.animations[prop] = 0
-			removed = true
 		end
 	end
-	return removed
 end
 
 local function nextOrder(look: Look): number
