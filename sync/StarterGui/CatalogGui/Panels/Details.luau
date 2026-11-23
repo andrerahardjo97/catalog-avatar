@@ -15,6 +15,7 @@ local detailActions = Ui.detailActions
 local detailsItem = nil
 local detailsFavorite = false
 local favoriteItem = nil
+local openToken = 0
 
 function Details.isOpen(): boolean
 	return details.Visible
@@ -27,11 +28,13 @@ function Details.refresh()
 end
 
 function Details.hide()
+	openToken += 1
 	details.Visible = false
 	detailsItem = nil
 end
 
 function Details.close()
+	openToken += 1
 	details.Visible = false
 	Ui.panel.Visible = true
 	detailsItem = nil
@@ -41,6 +44,8 @@ function Details.close()
 end
 
 function Details.open(item: Look.Item)
+	openToken += 1
+	local mine = openToken
 	detailsItem = item
 	detailsFavorite = false
 	details.Visible = true
@@ -63,7 +68,7 @@ function Details.open(item: Look.Item)
 		local ok, info = pcall(function(): any
 			return AvatarEditorService:GetItemDetailsAsync(item.id, Ui.itemType(item))
 		end)
-		if detailsItem ~= item then
+		if mine ~= openToken then
 			return
 		end
 		if ok then
@@ -81,7 +86,7 @@ function Details.open(item: Look.Item)
 			local okFavorite, favorite = pcall(function(): boolean
 				return AvatarEditorService:GetFavoriteAsync(item.id, Ui.itemType(item))
 			end)
-			if okFavorite and detailsItem == item then
+			if okFavorite and mine == openToken then
 				detailsFavorite = favorite
 				detailActions.FavoriteButton.Text = if favorite then "Unfavorite" else "Favorite"
 			end
@@ -96,7 +101,7 @@ function Details.open(item: Look.Item)
 			end
 			return AvatarEditorService:GetRecommendedAssetsAsync(assetType, item.id)
 		end)
-		if detailsItem ~= item or not okSimilar then
+		if mine ~= openToken or not okSimilar then
 			return
 		end
 		for i, entry in similar do

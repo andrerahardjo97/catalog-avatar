@@ -193,6 +193,8 @@ local function setOpen(value: boolean)
 		Details.hide()
 		saveMenu.Visible = false
 		Catalog.cancel()
+		Wearing.cancel()
+		Body.cancel()
 		Ui.clearChildren(grid)
 		if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(gui) then
 			GuiService.SelectedObject = nil
