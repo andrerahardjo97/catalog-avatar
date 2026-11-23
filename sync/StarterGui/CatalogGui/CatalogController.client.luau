@@ -4,7 +4,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
 
 local Avatar = ReplicatedStorage:WaitForChild("Avatar")
 local Look = require(Avatar:WaitForChild("Look"))
@@ -22,6 +21,7 @@ local Wearing = require(script.Parent.Panels.Wearing)
 local Body = require(script.Parent.Panels.Body)
 local PlayersPanel = require(script.Parent.Panels.Players)
 local Details = require(script.Parent.Panels.Details)
+local Preview = require(script.Parent.Preview)
 
 local PLAYER_CONTEXTS = { "CharacterContext", "CameraContext" }
 
@@ -30,6 +30,7 @@ local gui = Ui.gui
 local editor = Ui.editor
 local orbitPad = Ui.orbitPad
 local toolbar = Ui.toolbar
+local preview = Ui.preview
 local panel = Ui.panel
 local details = Ui.details
 local saveMenu = Ui.saveMenu
@@ -43,6 +44,9 @@ local touchControls = true
 local shopIcon = Icon.new():setName("AvatarShop"):setLabel("Avatar Shop"):setCaptionHint(Enum.KeyCode.C)
 
 Session.changed = function(): ()
+	if not Session.applying then
+		Preview.refresh()
+	end
 	Cards.refresh()
 	Details.refresh()
 	if not Ui.open then
@@ -71,7 +75,6 @@ local function selectTab(index: number)
 			end
 		end
 	end
-	DressingCamera.setFocus(tab.focus)
 	Details.hide()
 	local catalog = tab.kind == "catalog"
 	local gridKind = catalog or tab.kind == "outfits"
@@ -108,54 +111,28 @@ local function shiftTab(step: number)
 	selectTab((Ui.tabIndex - 1 + step) % #Categories.tabs + 1)
 end
 
-local function frameCamera()
-	local camera = Workspace.CurrentCamera
-	if not camera then
-		return
-	end
-	local viewport = camera.ViewportSize
-	local inset = GuiService:GetGuiInset()
-	local panelTop = panel.AbsolutePosition + inset
-	if gui.AbsoluteSize.Y > gui.AbsoluteSize.X then
-		local top = toolbar.AbsolutePosition.Y + toolbar.AbsoluteSize.Y + inset.Y
-		local free = math.max(panelTop.Y - top, 1)
-		DressingCamera.setOffset(
-			Vector2.new(0, 1 - (top + panelTop.Y) / viewport.Y),
-			math.clamp(0.6 * viewport.Y / free, 1, 2.2)
-		)
-	else
-		local bottom = toolbar.AbsolutePosition.Y + inset.Y
-		DressingCamera.setOffset(
-			Vector2.new(panelTop.X / viewport.X - 1, 1 - bottom / viewport.Y),
-			math.clamp(0.85 * viewport.Y / math.max(bottom, 1), 1, 2.2)
-		)
-	end
-end
-
 local function relayout()
 	local size = gui.AbsoluteSize
 	if size.X <= 0 or size.Y <= 0 then
 		return
 	end
-	local portrait = size.Y > size.X
+	local margin = 12
 	local panelWidth
-	if portrait then
-		local height = math.floor(size.Y * 0.56)
-		panelWidth = size.X - 16
-		panel.AnchorPoint = Vector2.new(0, 1)
-		panel.Position = UDim2.new(0, 8, 1, -8)
-		panel.Size = UDim2.new(1, -16, 0, height)
-		toolbar.AnchorPoint = Vector2.zero
-		toolbar.Position = UDim2.fromOffset(8, 8)
+	if size.Y > size.X then
+		local previewHeight = math.floor(size.Y * 0.4)
+		preview.Size = UDim2.new(1, -2 * margin, 0, previewHeight - margin)
+		panel.Position = UDim2.fromOffset(margin, previewHeight + margin)
+		panel.Size = UDim2.new(1, -2 * margin, 1, -previewHeight - 2 * margin)
+		panelWidth = size.X - 2 * margin
 	else
-		panelWidth = math.clamp(math.floor(size.X * 0.44), math.min(330, size.X - 24), 620)
-		panel.AnchorPoint = Vector2.new(1, 0)
-		panel.Position = UDim2.new(1, -12, 0, 12)
-		panel.Size = UDim2.new(0, panelWidth, 1, -24)
-		toolbar.AnchorPoint = Vector2.new(0, 1)
-		toolbar.Position = UDim2.new(0, 12, 1, -12)
+		local previewWidth = math.max(math.floor(size.X / 3), 300)
+		preview.Size = UDim2.new(0, previewWidth - margin, 1, -2 * margin)
+		panel.Position = UDim2.fromOffset(previewWidth + margin, margin)
+		panel.Size = UDim2.new(1, -previewWidth - 2 * margin, 1, -2 * margin)
+		panelWidth = size.X - previewWidth - 2 * margin
 	end
-	task.defer(frameCamera)
+	preview.Position = UDim2.fromOffset(margin, margin)
+	panel.AnchorPoint = Vector2.zero
 	details.AnchorPoint = panel.AnchorPoint
 	details.Position = panel.Position
 	details.Size = panel.Size
@@ -207,12 +184,12 @@ local function setOpen(value: boolean)
 		relayout()
 		local character = player.Character
 		if character then
-			DressingCamera.start(character)
+			Preview.start(character)
 		end
 		task.spawn(Session.ensureLook)
 		selectTab(Ui.tabIndex)
 	else
-		DressingCamera.stop()
+		Preview.stop()
 		Details.hide()
 		saveMenu.Visible = false
 		Catalog.cancel()
@@ -333,6 +310,19 @@ orbitPad.Drag.DragEnd:Connect(function()
 	lastDrag = nil
 end)
 
+-- Same sign as a drag: the right button turns the avatar like a drag to the right.
+for button, direction in { [preview.Stage.RotateLeftButton] = -1, [preview.Stage.RotateRightButton] = 1 } do
+	button.MouseButton1Down:Connect(function()
+		DressingCamera.setOrbitRate(Vector2.new(direction, 0))
+	end)
+	button.MouseButton1Up:Connect(function()
+		DressingCamera.setOrbitRate(Vector2.zero)
+	end)
+	button.MouseLeave:Connect(function()
+		DressingCamera.setOrbitRate(Vector2.zero)
+	end)
+end
+
 ToggleContext.Toggle.Pressed:Connect(function()
 	if not Ui.isTyping() then
 		setOpen(not Ui.open)
@@ -386,7 +376,7 @@ gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(relayout)
 UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(updateHints)
 player.CharacterAdded:Connect(function(character)
 	if Ui.open then
-		DressingCamera.start(character)
+		Preview.start(character)
 	end
 end)
 

@@ -6,42 +6,38 @@ export type Scale = { key: string, label: string, min: number, max: number }
 local Categories = {}
 
 Categories.tabs = {
-	{ name = "Wearing", kind = "wearing", focus = "Full" },
-	{ name = "Popular", kind = "catalog", focus = "Full" },
-	{ name = "Hats", kind = "catalog", focus = "Head", assetTypes = { A.Hat } },
-	{ name = "Hair", kind = "catalog", focus = "Head", assetTypes = { A.HairAccessory } },
-	{ name = "Head", kind = "catalog", focus = "Head", assetTypes = { A.DynamicHead, A.FaceAccessory, A.Face } },
+	{ name = "Wearing", kind = "wearing" },
+	{ name = "Popular", kind = "catalog" },
+	{ name = "Hats", kind = "catalog", assetTypes = { A.Hat } },
+	{ name = "Hair", kind = "catalog", assetTypes = { A.HairAccessory } },
+	{ name = "Head", kind = "catalog", assetTypes = { A.DynamicHead, A.FaceAccessory, A.Face } },
 	{
 		name = "Makeup",
 		kind = "catalog",
-		focus = "Head",
 		assetTypes = { A.FaceMakeup, A.LipMakeup, A.EyeMakeup, A.EyebrowAccessory, A.EyelashAccessory },
 	},
 	{
 		name = "Tops",
 		kind = "catalog",
-		focus = "Torso",
 		assetTypes = { A.TShirtAccessory, A.ShirtAccessory, A.JacketAccessory, A.SweaterAccessory },
 	},
 	{
 		name = "Bottoms",
 		kind = "catalog",
-		focus = "Legs",
 		assetTypes = { A.PantsAccessory, A.ShortsAccessory, A.DressSkirtAccessory },
 	},
-	{ name = "Shoes", kind = "catalog", focus = "Feet", bundleTypes = { B.Shoes } },
+	{ name = "Shoes", kind = "catalog", bundleTypes = { B.Shoes } },
 	{
 		name = "Accessories",
 		kind = "catalog",
-		focus = "Torso",
 		assetTypes = { A.NeckAccessory, A.ShoulderAccessory, A.FrontAccessory, A.BackAccessory, A.WaistAccessory },
 	},
-	{ name = "Classic", kind = "catalog", focus = "Full", assetTypes = { A.Shirt, A.Pants, A.TShirt } },
-	{ name = "Bodies", kind = "catalog", focus = "Full", bundleTypes = { B.BodyParts, B.DynamicHeadAvatar } },
-	{ name = "Animations", kind = "catalog", focus = "Full", bundleTypes = { B.Animations } },
-	{ name = "Skin & Shape", kind = "body", focus = "Full" },
-	{ name = "Outfits", kind = "outfits", focus = "Full" },
-	{ name = "Players", kind = "players", focus = "Full" },
+	{ name = "Classic", kind = "catalog", assetTypes = { A.Shirt, A.Pants, A.TShirt } },
+	{ name = "Bodies", kind = "catalog", bundleTypes = { B.BodyParts, B.DynamicHeadAvatar } },
+	{ name = "Animations", kind = "catalog", bundleTypes = { B.Animations } },
+	{ name = "Skin & Shape", kind = "body" },
+	{ name = "Outfits", kind = "outfits" },
+	{ name = "Players", kind = "players" },
 }
 
 Categories.sorts = {
